@@ -67,5 +67,23 @@ def scrapeSeason(year):
 
 standings_files = os.listdir(STANDINGS_DIR)
 
-print(standings_files)
+standings_file = os.path.join(STANDINGS_DIR, standings_files[0])
+with open(standings_file, 'r') as f:
+    html = f.read()
+
+soup = BeautifulSoup(html, features="lxml")
+links = soup.find_all("a")
+href = []
+for l in links:
+    href.append(l.get("href"))
+box_scores = []
+
+for l in href:
+    if l and "boxscore" in l and ".html" in l:
+        box_scores.append(f"https://basketball-reference.com{l}")
+
+
+
+    
+
 
