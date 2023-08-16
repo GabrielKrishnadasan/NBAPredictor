@@ -15,13 +15,17 @@ SCORES_DIR = os.path.join(DATA_DIR, "scores")
 
 def get_html(url, selector, sleep=5):
     html = None
-    i = 1
+    i = 0
     while not html:
         #Prevent scraping too quick, could get banned, sleep longer each retry
         time.sleep(sleep * i)
         try:
             with sync_playwright() as p:
-                browser = p.chromium.launch()
+                #Alternate browser between firefox and chrome (Maybe will help with timeout errors?)
+                if i % 2 == 0:
+                    browser = p.firefox.launch()
+                else:
+                    browser = p.chromium.launch()
                 page = browser.new_page()
                 page.goto(url)
                 print(page.title())
@@ -44,17 +48,17 @@ def scrapeSeason(year):
     href = []
     for l in links:
         href.append(l["href"])
-    #print(href)
+
     standings_pages = []
     for l in href:
         standings_pages.append(f"https://www.basketball-reference.com{l}")
 
     for link in standings_pages:
-        save_path = os.path.join(STANDINGS_DIR, url.split("/")[-1])
+        save_path = os.path.join(STANDINGS_DIR, link.split("/")[-1])
         if os.path.exists(save_path):
             continue
 
-        html = get_html(url, "#all_schedule")
+        html = get_html(link, "#all_schedule")
         with open(save_path, "w+") as f:
             f.write(html)
 
@@ -62,5 +66,6 @@ def scrapeSeason(year):
     #scrapeSeason(s)
 
 standings_files = os.listdir(STANDINGS_DIR)
+
 print(standings_files)
 
