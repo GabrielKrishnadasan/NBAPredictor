@@ -13,9 +13,10 @@ DATA_DIR = "data"
 STANDINGS_DIR = os.path.join(DATA_DIR, "standings")
 SCORES_DIR = os.path.join(DATA_DIR, "scores")
 
-def get_html(url, selector, sleep=5, retries=3):
+def get_html(url, selector, sleep=5):
     html = None
-    for i in range(1,retries + 1):
+    i = 1
+    while not html:
         #Prevent scraping too quick, could get banned, sleep longer each retry
         time.sleep(sleep * i)
         try:
@@ -30,13 +31,36 @@ def get_html(url, selector, sleep=5, retries=3):
             continue
         else:
             break
+        i += 1
     return html
 
-def main():   
-    season = 2016
-    url = f"https://www.basketball-reference.com/leagues/NBA_{season}_games.html"
+def scrapeSeason(year):   
+    url = f"https://www.basketball-reference.com/leagues/NBA_{year}_games.html"
     html = get_html(url, "#content .filter")
-    print(html)
-    
-main()
+    #print(html)
+
+    soup = BeautifulSoup(html, features="lxml")
+    links = soup.find_all("a")
+    href = []
+    for l in links:
+        href.append(l["href"])
+    #print(href)
+    standings_pages = []
+    for l in href:
+        standings_pages.append(f"https://www.basketball-reference.com{l}")
+
+    for link in standings_pages:
+        save_path = os.path.join(STANDINGS_DIR, url.split("/")[-1])
+        if os.path.exists(save_path):
+            continue
+
+        html = get_html(url, "#all_schedule")
+        with open(save_path, "w+") as f:
+            f.write(html)
+
+#for s in SEASONS:
+    #scrapeSeason(s)
+
+standings_files = os.listdir(STANDINGS_DIR)
+print(standings_files)
 
