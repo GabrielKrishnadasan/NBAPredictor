@@ -95,5 +95,3 @@ for f in standings_files:
     filepath = os.path.join(STANDINGS_DIR, f)
 
     scrape_game(filepath)
-
-
