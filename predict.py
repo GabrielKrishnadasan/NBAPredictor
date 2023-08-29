@@ -21,7 +21,10 @@ def add_target(team):
     return team
 
 #Data cleaning and adding the target column
-df = df.groupby("team", group_keys=False).apply(add_target).copy()
+df = df.groupby("team", group_keys=False).apply(add_target)
+
+df = df.copy()
+
 df["target"][pd.isnull(df["target"])] = 2
 df["target"] = df["target"].astype(int, errors="ignore")
 
@@ -72,14 +75,15 @@ def backtest(data, model, predictors, start=2, step=1):
 predictions = backtest(df, rc, predictors)
 
 temp = accuracy_score(predictions["actual"], predictions["prediction"])
+print(temp)
 
 df_rolling = df[list(selected_columns) + ["won", "team", "season"]]
 
-def find_team_avg(team):
-    rolling = team.rolling(10).mean()
+def find_team_averages(team):
+    rolling = team.rolling(5).mean()
     return rolling
 
-df_rolling = df_rolling.groupby(["team", "season"], group_keys=False).apply(find_team_avg)
+df_rolling = df_rolling.groupby(["team", "season"], group_keys=False).apply(find_team_averages)
 
 rolling_cols = [f"{col}_10" for col in df_rolling.columns]
 df_rolling.columns = rolling_cols
@@ -102,3 +106,14 @@ df = df.copy()
 
 full = df.merge(df[rolling_cols + ["team_opp_next", "date_next", "team"]], left_on=["team", "date_next"], right_on=["team_opp_next", "date_next"])
 
+removed_columns = list(full.columns[full.dtypes == "object"]) + removed_columns
+
+selected_columns = full.columns[~full.columns.isin(removed_columns)]
+sfs.fit(full[selected_columns], full["target"])
+
+predictors = list(selected_columns[sfs.get_support()])
+
+predictions = backtest(full, rc, predictors)
+
+temp = accuracy_score(predictions["actual"], predictions["prediction"])
+print(temp)
