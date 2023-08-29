@@ -1,3 +1,3 @@
 # NBAPredictor
-Data Science/Analytics projects for predicting winner of NBA games. 
+Data Science/Analytics projects for predicting winner of NBA games. <br />
 test
