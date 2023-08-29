@@ -5,14 +5,18 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 import time
 
+#Added to prevent error message
 tracemalloc.start()
 
+#Seasons that I wanted to test for
 SEASONS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
 
+#Linking directories to a variable
 DATA_DIR = "data"
 STANDINGS_DIR = os.path.join(DATA_DIR, "standings")
 SCORES_DIR = os.path.join(DATA_DIR, "scores")
 
+#Gets the html file of selected url
 def get_html(url, selector, sleep=5):
     html = None
     i = 0
@@ -38,10 +42,10 @@ def get_html(url, selector, sleep=5):
         i += 1
     return html
 
+#Calls get_html for a whole NBA season
 def scrapeSeason(year):   
     url = f"https://www.basketball-reference.com/leagues/NBA_{year}_games.html"
     html = get_html(url, "#content .filter")
-    #print(html)
 
     soup = BeautifulSoup(html, features="lxml")
     links = soup.find_all("a")
@@ -62,7 +66,7 @@ def scrapeSeason(year):
         with open(save_path, "w+") as f:
             f.write(html)
 
-
+#Takes a selected game and scraped the html box score for that game
 def scrape_game(standings_file):
     with open(standings_file, 'r') as f:
         html = f.read()
@@ -91,7 +95,7 @@ def scrape_game(standings_file):
     
 standings_files = os.listdir(STANDINGS_DIR)
 
+#Loop to scrape all the games
 for f in standings_files:
     filepath = os.path.join(STANDINGS_DIR, f)
-
     scrape_game(filepath)
